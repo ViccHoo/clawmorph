@@ -1,0 +1,56 @@
+{
+  "name": "clawmorph",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Transform OpenClaw agents into specialized professional roles with preview, apply, and rollback.",
+  "main": "dist/cli.js",
+  "bin": {
+    "clawmorph": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/cli.ts",
+    "start": "node dist/cli.js",
+    "list": "tsx src/cli.ts list",
+    "preview": "tsx src/cli.ts preview",
+    "apply": "tsx src/cli.ts apply",
+    "rollback": "tsx src/cli.ts rollback",
+    "verify:mvp": "npm run build && npm run list && npm run preview -- --path ./test-fixtures/demo-agent --role researcher",
+    "prepare": "npm run build",
+    "test": "npm run verify:mvp"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "commander": "^13.1.0",
+    "diff": "^7.0.0",
+    "fs-extra": "^11.3.0",
+    "picocolors": "^1.1.1",
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@types/diff": "^7.0.1",
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.13.14",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  },
+  "license": "MIT",
+  "keywords": [
+    "openclaw",
+    "agent",
+    "persona",
+    "role-pack",
+    "cli",
+    "workflow",
+    "assistant",
+    "typescript"
+  ],
+  "files": [
+    "dist",
+    "role-packs",
+    "README.md",
+    "LICENSE"
+  ]
+}
