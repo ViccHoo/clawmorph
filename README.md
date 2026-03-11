@@ -24,10 +24,11 @@ npm install
 npm run build
 npm run list
 npm run preview -- --path ./test-fixtures/demo-agent --role researcher
-npm run apply -- --path ./test-fixtures/demo-agent --role researcher
-npm run rollback -- --path ./test-fixtures/demo-agent
+npm run demo:apply
 npm run demo
 ```
+
+`npm run demo:apply` uses a temporary copy of the demo fixture so you can test apply + rollback safely without mutating the checked-in files.
 
 ---
 
@@ -76,16 +77,24 @@ Or resolve a named agent conservatively:
 npm run preview -- --agent leo --role researcher
 ```
 
-### Apply a role pack
+### Apply + rollback safely on a temporary copy
 
 ```bash
-npm run apply -- --path ./test-fixtures/demo-agent --role researcher
+npm run demo:apply
+```
+
+This runs `apply` and `rollback` against a temporary copy of `test-fixtures/demo-agent`.
+
+### Apply a role pack directly to a workspace copy
+
+```bash
+npm run apply -- --path /tmp/leo-demo --role researcher
 ```
 
 ### Roll back the latest apply
 
 ```bash
-npm run rollback -- --path ./test-fixtures/demo-agent
+npm run rollback -- --path /tmp/leo-demo
 npm run demo
 ```
 

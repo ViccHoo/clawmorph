@@ -17,10 +17,11 @@
     "rollback": "tsx src/cli.ts rollback",
     "verify:mvp": "npm run build && npm run list && npm run preview -- --path ./test-fixtures/demo-agent --role researcher",
     "prepare": "npm run build",
-    "test": "npm run verify:mvp",
+    "test": "npm run verify:mvp && npm run verify:e2e",
     "demo:fixture": "tsx src/cli.ts preview --path ./test-fixtures/demo-agent --role researcher",
     "demo:apply": "node scripts/demo-apply.mjs",
-    "demo": "node scripts/demo-release.mjs"
+    "demo": "node scripts/demo-release.mjs",
+    "verify:e2e": "node scripts/verify-e2e.mjs"
   },
   "engines": {
     "node": ">=18"
@@ -58,7 +59,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/ViccHoo/clawmorph.git"
+    "url": "git+https://github.com/ViccHoo/clawmorph.git"
   },
   "homepage": "https://github.com/ViccHoo/clawmorph",
   "bugs": {
