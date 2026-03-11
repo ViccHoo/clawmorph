@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.clawmorph/
+.vscode/
+.DS_Store
+*.log
