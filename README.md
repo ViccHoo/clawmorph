@@ -1,19 +1,28 @@
 # ClawMorph
 
-**Transform any OpenClaw agent into a specialized professional role with preview, apply, and rollback.**
+> **Turn one agent into many roles — with preview, snapshot, and rollback.**
 
-ClawMorph is a lightweight TypeScript CLI for OpenClaw agent workspaces. It lets you turn an existing agent into a **researcher, designer, lawyer, product manager, or founder** without editing prompt files by hand.
+Transform any OpenClaw agent into a role-specific workspace in one command.
 
-## Why it is interesting
+ClawMorph lets you turn the same agent into a **researcher, designer, lawyer, product manager, or founder** without hand-editing prompt files.
 
-Most agent customization tools stop at prompts. ClawMorph works at the **workspace level**:
+Unlike simple prompt switchers, ClawMorph works at the **workspace layer**:
 
-- previews what will change before mutation
-- applies a role pack safely
-- creates snapshots before writing files
-- rolls back to the previous state when needed
+- preview changes before writing anything
+- apply a role pack safely
+- snapshot the previous state automatically
+- roll back cleanly when you want to undo
 
-That makes it much more useful for real OpenClaw workflows than a simple prompt switcher.
+That makes it useful for real agent iteration, not just prompt swapping.
+
+---
+
+## Why people star it
+
+- **Role switching without manual file surgery**
+- **Safer than ad-hoc prompt edits** because every apply is previewable and reversible
+- **Works on real OpenClaw workspaces** instead of isolated prompt snippets
+- **Easy to demo**: list, preview, apply, rollback
 
 ---
 
@@ -32,10 +41,22 @@ npm run demo
 
 ---
 
+## Why it is different
+
+| Capability | Prompt template | ClawMorph |
+|---|---:|---:|
+| Switch role instructions | ✅ | ✅ |
+| Preview changes before write | ❌ | ✅ |
+| Update workspace files | ❌ | ✅ |
+| Snapshot before mutation | ❌ | ✅ |
+| Roll back to previous state | ❌ | ✅ |
+
+---
+
 ## Before vs after
 
 ### Before
-A generic OpenClaw agent workspace might only contain a small identity file and a few loose notes.
+A generic OpenClaw agent workspace might only contain a light identity file and a few loose notes.
 
 ### After
 ClawMorph can apply a role pack that:

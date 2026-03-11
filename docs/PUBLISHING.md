@@ -50,3 +50,22 @@ npm publish
 
 ## 6. Suggested launch angle
 ClawMorph is a lightweight CLI for OpenClaw that works at the workspace level, not just the prompt level. It previews changes, applies role packs safely, snapshots before mutation, and rolls back cleanly.
+
+## 7. Suggested launch blurb
+Short version:
+
+> Built **ClawMorph** — a CLI that turns one OpenClaw agent into many roles.
+> 
+> Not just prompt switching: it previews workspace changes, snapshots before apply, and rolls back cleanly.
+> 
+> Roles included today: researcher, designer, lawyer, product manager, and founder.
+
+Longer version:
+
+> Built **ClawMorph**, a lightweight CLI for transforming OpenClaw agents into role-specific workspaces.
+> 
+> Instead of manually editing prompt files, you can preview changes, apply a role pack safely, snapshot the previous state, and roll back when needed.
+> 
+> Current built-in packs include researcher, designer, lawyer, product manager, and founder.
+> 
+> The interesting part is that it works at the **workspace layer**, not just as a prompt template switcher.
