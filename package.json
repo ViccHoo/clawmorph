@@ -54,5 +54,14 @@
     "role-packs",
     "README.md",
     "LICENSE"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ViccHoo/clawmorph.git"
+  },
+  "homepage": "https://github.com/ViccHoo/clawmorph",
+  "bugs": {
+    "url": "https://github.com/ViccHoo/clawmorph/issues"
+  },
+  "author": "Vicc"
 }
