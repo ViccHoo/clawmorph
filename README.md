@@ -26,6 +26,7 @@ npm run list
 npm run preview -- --path ./test-fixtures/demo-agent --role researcher
 npm run apply -- --path ./test-fixtures/demo-agent --role researcher
 npm run rollback -- --path ./test-fixtures/demo-agent
+npm run demo
 ```
 
 ---
@@ -85,6 +86,7 @@ npm run apply -- --path ./test-fixtures/demo-agent --role researcher
 
 ```bash
 npm run rollback -- --path ./test-fixtures/demo-agent
+npm run demo
 ```
 
 ---
@@ -127,6 +129,14 @@ npm run rollback -- --path /tmp/leo-demo
 ```
 
 This keeps your real agent untouched while still demonstrating the workflow.
+
+## Cross-platform note
+
+ClawMorph's core CLI is Node.js-based and is intended to work across macOS, Ubuntu/Linux, and Windows.
+
+- Core commands (`list`, `preview`, `apply`, `rollback`) are implemented in TypeScript/Node and are platform-friendly.
+- Demo entrypoints now use Node-based scripts instead of Unix-only shell helpers.
+- For the smoothest first run on Windows, prefer the explicit `--path` mode before testing `--agent`.
 
 ---
 
