@@ -17,7 +17,9 @@
     "rollback": "tsx src/cli.ts rollback",
     "verify:mvp": "npm run build && npm run list && npm run preview -- --path ./test-fixtures/demo-agent --role researcher",
     "prepare": "npm run build",
-    "test": "npm run verify:mvp"
+    "test": "npm run verify:mvp",
+    "demo:fixture": "tsx src/cli.ts preview --path ./test-fixtures/demo-agent --role researcher",
+    "demo:apply": "bash -lc \"TMPDIR=$(mktemp -d) && cp -R test-fixtures/demo-agent/. \"$TMPDIR\"/ && tsx src/cli.ts apply --path \"$TMPDIR\" --role researcher && tsx src/cli.ts rollback --path \"$TMPDIR\"\""
   },
   "engines": {
     "node": ">=18"
