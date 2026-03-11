@@ -1,7 +1,7 @@
 # ClawMorph Release Prep
 
-## Suggested GitHub repository name
-- `openclaw-clawmorph`
+## GitHub repository
+- `clawmorph`
 
 ## Suggested GitHub description
 - Transform OpenClaw agents into specialized professional roles with preview, apply, and rollback.
@@ -26,8 +26,8 @@
 - [x] Safe real-agent demo validated on copied workspace
 - [ ] Add one terminal screenshot or GIF to README
 - [ ] Create clean initial public commit history (or squash)
-- [ ] Push to GitHub repository
-- [ ] Add repository description and topics
+- [x] Push to GitHub repository
+- [x] Add repository description and topics
 - [ ] Optionally publish to npm
 
 ## Suggested first commit message

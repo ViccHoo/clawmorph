@@ -1,8 +1,8 @@
 # Publishing ClawMorph
 
 ## 1. Create GitHub repository
-Recommended name:
-- `openclaw-clawmorph`
+Recommended repository:
+- `clawmorph`
 
 Recommended description:
 - Transform OpenClaw agents into specialized professional roles with preview, apply, and rollback.
