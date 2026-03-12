@@ -9,6 +9,7 @@ import { createApplyCommand } from "./commands/apply";
 import { createListCommand } from "./commands/list";
 import { createPreviewCommand } from "./commands/preview";
 import { createRollbackCommand } from "./commands/rollback";
+import { createSnapshotsCommand } from "./commands/snapshots";
 
 function getPackageVersion(): string {
   const packageJsonPath = path.resolve(__dirname, "..", "package.json");
@@ -32,6 +33,7 @@ async function main(): Promise<void> {
   program.addCommand(createPreviewCommand());
   program.addCommand(createApplyCommand());
   program.addCommand(createRollbackCommand());
+  program.addCommand(createSnapshotsCommand());
 
   program.configureOutput({
     outputError: (message, write) => {

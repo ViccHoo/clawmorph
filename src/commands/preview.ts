@@ -4,12 +4,14 @@ import pc from "picocolors";
 import { buildPreviewPlan } from "../core/preview";
 import { loadRolePackByName } from "../core/role-pack";
 import { resolveWorkspaceTarget, scanOpenClawWorkspace } from "../core/workspace";
+import { printJson, serializeRolePack, serializeTarget } from "../utils/output";
 
 type PreviewOptions = {
   role: string;
   path?: string;
   agent?: string;
   dir?: string;
+  json?: boolean;
 };
 
 function colorizeDiffLine(line: string): string {
@@ -55,6 +57,7 @@ export function createPreviewCommand(): Command {
     .option("-a, --agent <name>", "agent name under common workspace paths")
     .requiredOption("-r, --role <name>", "role pack name")
     .option("-d, --dir <path>", "role packs directory")
+    .option("--json", "output machine-readable JSON")
     .action(async (options: PreviewOptions) => {
       const pack = await loadRolePackByName(options.role, options.dir);
       const target = await resolveWorkspaceTarget({
@@ -63,6 +66,19 @@ export function createPreviewCommand(): Command {
       });
       const workspace = await scanOpenClawWorkspace(target);
       const preview = buildPreviewPlan(pack, workspace);
+
+      if (options.json) {
+        printJson({
+          target: serializeTarget(target),
+          rolePack: serializeRolePack(pack),
+          filesToChange: preview.filesToChange,
+          missingFiles: preview.missingFiles,
+          memoryEntriesToAppend: preview.memoryEntriesToAppend,
+          suggestedSkills: preview.suggestedSkills,
+          riskLevel: preview.riskLevel,
+        });
+        return;
+      }
 
       console.log(pc.bold(`Previewing ${pack.name}`));
       console.log(

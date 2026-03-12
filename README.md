@@ -84,12 +84,14 @@ ClawMorph can apply a role pack that:
 
 ```bash
 npm run list
+npm run snapshots -- --path /tmp/leo-demo
 ```
 
 ### Preview changes for a role pack
 
 ```bash
 npm run preview -- --path ./test-fixtures/demo-agent --role researcher
+npm run preview -- --path ./test-fixtures/demo-agent --role researcher --json
 ```
 
 Or resolve a named agent conservatively:
@@ -116,6 +118,7 @@ npm run apply -- --path /tmp/leo-demo --role researcher
 
 ```bash
 npm run rollback -- --path /tmp/leo-demo
+npm run rollback -- --path /tmp/leo-demo --snapshot <snapshot-id>
 npm run demo
 ```
 
@@ -142,6 +145,18 @@ Current MVP focuses on these files:
 - `MEMORY.md`
 
 ClawMorph intentionally does **not** mutate `USER.md` in this version.
+
+## Automation-friendly output
+
+For integration with scripts or future UI layers, core commands support JSON output:
+
+```bash
+npm run list -- --json
+npm run preview -- --path ./test-fixtures/demo-agent --role researcher --json
+npm run apply -- --path /tmp/leo-demo --role researcher --json
+npm run rollback -- --path /tmp/leo-demo --json
+npm run snapshots -- --path /tmp/leo-demo --json
+```
 
 ---
 

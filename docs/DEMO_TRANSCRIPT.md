@@ -33,3 +33,15 @@ npm run rollback -- --agent leo-demo
 ```
 
 This transcript is useful for terminal screenshots, GIF recording, and GitHub documentation.
+
+## List snapshots
+
+```bash
+npm run snapshots -- --path /tmp/demo-agent-copy
+```
+
+## JSON output for automation
+
+```bash
+npm run preview -- --path ./test-fixtures/demo-agent --role researcher --json
+```

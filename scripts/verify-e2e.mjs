@@ -167,8 +167,65 @@ function verifyManagedSectionsUpdate() {
   });
 }
 
+function verifyJsonOutputs() {
+  const listResult = JSON.parse(run(['list', '--json']).stdout);
+  assert.equal(listResult.packs.length, 5, 'Expected built-in role packs in list JSON output.');
+
+  withFixtureCopy(demoFixture, (tmpDir) => {
+    const previewResult = JSON.parse(
+      run(['preview', '--path', tmpDir, '--role', 'researcher', '--json']).stdout,
+    );
+    assert.equal(previewResult.riskLevel, 'medium');
+    assert.equal(previewResult.filesToChange.length, 4);
+
+    const applyResult = JSON.parse(
+      run(['apply', '--path', tmpDir, '--role', 'researcher', '--json']).stdout,
+    );
+    assert.equal(applyResult.createdCount, 2);
+    assert.equal(applyResult.updatedCount, 2);
+    assert.ok(applyResult.snapshot?.id, 'Expected snapshot metadata in apply JSON output.');
+
+    const rollbackResult = JSON.parse(run(['rollback', '--path', tmpDir, '--json']).stdout);
+    assert.equal(rollbackResult.found, true);
+    assert.equal(Array.isArray(rollbackResult.prunedSnapshotIds), true);
+  });
+}
+
+function verifySnapshotsCommandAndSpecificRollback() {
+  withFixtureCopy(demoFixture, (tmpDir) => {
+    const originalFingerprint = createWorkspaceFingerprint(tmpDir);
+
+    run(['apply', '--path', tmpDir, '--role', 'researcher']);
+    run(['apply', '--path', tmpDir, '--role', 'founder']);
+
+    const snapshots = JSON.parse(run(['snapshots', '--path', tmpDir, '--json']).stdout);
+    assert.equal(snapshots.snapshots.length, 2, 'Expected two snapshots after two applies.');
+
+    const oldestSnapshot = snapshots.snapshots[snapshots.snapshots.length - 1];
+    const rollbackResult = JSON.parse(
+      run(['rollback', '--path', tmpDir, '--snapshot', oldestSnapshot.id, '--json']).stdout,
+    );
+
+    assert.equal(rollbackResult.snapshotId, oldestSnapshot.id);
+    assert.equal(
+      createWorkspaceFingerprint(tmpDir),
+      originalFingerprint,
+      'Rollback to a specific older snapshot should restore the original state.',
+    );
+
+    const remainingSnapshots = JSON.parse(run(['snapshots', '--path', tmpDir, '--json']).stdout);
+    assert.equal(
+      remainingSnapshots.snapshots.length,
+      0,
+      'Rollback to an older snapshot should prune that snapshot and newer ones.',
+    );
+  });
+}
+
 verifyBasicApplyRollback();
 verifyIdempotentApply();
 verifyMultiRoleRollbackChain();
 verifyManagedSectionsUpdate();
+verifyJsonOutputs();
+verifySnapshotsCommandAndSpecificRollback();
 console.log('All E2E verification scenarios passed.');

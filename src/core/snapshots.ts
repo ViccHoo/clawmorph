@@ -32,16 +32,19 @@ export interface SnapshotMetadata {
 }
 
 export interface CreatedSnapshot {
+  id: string;
   directory: string;
   metadataPath: string;
   metadata: SnapshotMetadata;
 }
 
 export interface RollbackResult {
+  snapshotId: string;
   snapshotDirectory: string;
   metadataPath: string;
   restoredFiles: SnapshotChangedFile[];
   removedFiles: SnapshotChangedFile[];
+  prunedSnapshotIds: string[];
 }
 
 function sanitizeSnapshotSegment(value: string): string {
@@ -97,7 +100,8 @@ export async function createSnapshot(preview: PreviewPlan): Promise<CreatedSnaps
   const target = preview.workspace;
   const timestamp = new Date().toISOString();
   const { root, snapshotKey } = getSnapshotsRoot(target);
-  const directory = path.join(root, createTimestampDirectoryName(timestamp));
+  const id = createTimestampDirectoryName(timestamp);
+  const directory = path.join(root, id);
 
   await fs.ensureDir(directory);
 
@@ -143,20 +147,21 @@ export async function createSnapshot(preview: PreviewPlan): Promise<CreatedSnaps
   await fs.writeJson(metadataPath, metadata, { spaces: 2 });
 
   return {
+    id,
     directory,
     metadataPath,
     metadata,
   };
 }
 
-export async function findLatestSnapshot(
+export async function listSnapshots(
   target: ResolvedWorkspaceTarget,
-): Promise<CreatedSnapshot | null> {
+): Promise<CreatedSnapshot[]> {
   const { root } = getSnapshotsRoot(target);
   const exists = await fs.pathExists(root);
 
   if (!exists) {
-    return null;
+    return [];
   }
 
   const entries = await fs.readdir(root);
@@ -171,32 +176,50 @@ export async function findLatestSnapshot(
     }
   }
 
-  const latestEntry = directories.sort((left, right) => right.localeCompare(left))[0];
+  const sortedIds = directories.sort((left, right) => right.localeCompare(left));
 
-  if (!latestEntry) {
-    return null;
-  }
+  return Promise.all(
+    sortedIds.map(async (id) => {
+      const directory = path.join(root, id);
+      const metadataPath = path.join(directory, "meta.json");
+      const metadata = await fs.readJson(metadataPath);
 
-  const directory = path.join(root, latestEntry);
-  const metadataPath = path.join(directory, "meta.json");
-  const metadata = await fs.readJson(metadataPath);
+      return {
+        id,
+        directory,
+        metadataPath,
+        metadata: metadata as SnapshotMetadata,
+      } satisfies CreatedSnapshot;
+    }),
+  );
+}
 
-  return {
-    directory,
-    metadataPath,
-    metadata: metadata as SnapshotMetadata,
-  };
+export async function findLatestSnapshot(
+  target: ResolvedWorkspaceTarget,
+): Promise<CreatedSnapshot | null> {
+  const snapshots = await listSnapshots(target);
+  return snapshots[0] ?? null;
 }
 
 export async function rollbackSnapshot(
   target: ResolvedWorkspaceTarget,
+  snapshotId?: string,
 ): Promise<RollbackResult | null> {
-  const snapshot = await findLatestSnapshot(target);
+  const snapshots = await listSnapshots(target);
 
-  if (!snapshot) {
+  if (snapshots.length === 0) {
     return null;
   }
 
+  const selectedIndex = snapshotId
+    ? snapshots.findIndex((snapshot) => snapshot.id === snapshotId)
+    : 0;
+
+  if (selectedIndex === -1) {
+    throw new Error(`Snapshot "${snapshotId}" was not found.`);
+  }
+
+  const snapshot = snapshots[selectedIndex];
   const restoredFiles: SnapshotChangedFile[] = [];
   const removedFiles: SnapshotChangedFile[] = [];
 
@@ -212,7 +235,10 @@ export async function rollbackSnapshot(
     removedFiles.push(file);
   }
 
-  await fs.remove(snapshot.directory);
+  const prunedSnapshots = snapshots.slice(0, selectedIndex + 1);
+  for (const item of prunedSnapshots) {
+    await fs.remove(item.directory);
+  }
 
   const snapshotsRoot = getSnapshotsRoot(target).root;
   await removeIfEmpty(snapshotsRoot);
@@ -220,9 +246,11 @@ export async function rollbackSnapshot(
   await removeIfEmpty(path.join(target.rootPath, ".clawmorph"));
 
   return {
+    snapshotId: snapshot.id,
     snapshotDirectory: snapshot.directory,
     metadataPath: snapshot.metadataPath,
     restoredFiles,
     removedFiles,
+    prunedSnapshotIds: prunedSnapshots.map((item) => item.id),
   };
 }

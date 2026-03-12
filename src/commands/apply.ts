@@ -4,12 +4,14 @@ import pc from "picocolors";
 import { applyRolePack } from "../core/apply";
 import { loadRolePackByName } from "../core/role-pack";
 import { resolveWorkspaceTarget } from "../core/workspace";
+import { printJson, serializeRolePack, serializeTarget, serializeSnapshot } from "../utils/output";
 
 type ApplyOptions = {
   role: string;
   path?: string;
   agent?: string;
   dir?: string;
+  json?: boolean;
 };
 
 export function createApplyCommand(): Command {
@@ -19,6 +21,7 @@ export function createApplyCommand(): Command {
     .option("-a, --agent <name>", "agent name under common workspace paths")
     .requiredOption("-r, --role <name>", "role pack name")
     .option("-d, --dir <path>", "role packs directory")
+    .option("--json", "output machine-readable JSON")
     .action(async (options: ApplyOptions) => {
       const pack = await loadRolePackByName(options.role, options.dir);
       const target = await resolveWorkspaceTarget({
@@ -26,6 +29,19 @@ export function createApplyCommand(): Command {
         agent: options.agent,
       });
       const result = await applyRolePack(pack, target);
+
+      if (options.json) {
+        printJson({
+          rolePack: serializeRolePack(pack),
+          target: serializeTarget(target),
+          snapshot: result.snapshot ? serializeSnapshot(result.snapshot) : null,
+          filesChanged: result.filesChanged,
+          memoryEntriesAppended: result.memoryEntriesAppended,
+          createdCount: result.createdCount,
+          updatedCount: result.updatedCount,
+        });
+        return;
+      }
 
       console.log(pc.bold(`Applied ${pack.name}`));
       console.log(
