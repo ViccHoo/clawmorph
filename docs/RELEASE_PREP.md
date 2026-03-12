@@ -39,8 +39,7 @@ npm install
 npm run build
 npm run list
 npm run preview -- --path ./test-fixtures/demo-agent --role researcher
-npm run apply -- --path ./test-fixtures/demo-agent --role researcher
-npm run rollback -- --path ./test-fixtures/demo-agent
+npm run demo:apply
 ```
 
 ## Suggested launch post angle

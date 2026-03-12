@@ -7,8 +7,8 @@ import path from 'node:path';
 import fs from 'fs-extra';
 
 const projectRoot = process.cwd();
-const fixture = path.join(projectRoot, 'test-fixtures', 'demo-agent');
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'clawmorph-e2e-'));
+const demoFixture = path.join(projectRoot, 'test-fixtures', 'demo-agent');
+const managedFixture = path.join(projectRoot, 'test-fixtures', 'managed-agent');
 
 function run(args) {
   const result = spawnSync('node', ['dist/cli.js', ...args], {
@@ -23,6 +23,17 @@ function run(args) {
   }
 
   return result;
+}
+
+function withFixtureCopy(fixturePath, callback) {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'clawmorph-e2e-'));
+
+  try {
+    fs.copySync(fixturePath, tmpDir, { overwrite: true });
+    callback(tmpDir);
+  } finally {
+    fs.removeSync(tmpDir);
+  }
 }
 
 function collectFiles(rootDir, currentDir = rootDir) {
@@ -60,34 +71,104 @@ function createWorkspaceFingerprint(rootDir) {
   return hash.digest('hex');
 }
 
-try {
-  fs.copySync(fixture, tmpDir, { overwrite: true });
+function verifyBasicApplyRollback() {
+  withFixtureCopy(demoFixture, (tmpDir) => {
+    const beforeFingerprint = createWorkspaceFingerprint(tmpDir);
+    const applyResult = run(['apply', '--path', tmpDir, '--role', 'researcher']);
 
-  const beforeFingerprint = createWorkspaceFingerprint(tmpDir);
-  const applyResult = run(['apply', '--path', tmpDir, '--role', 'researcher']);
+    assert.match(applyResult.stdout, /Applied researcher/);
+    assert.ok(
+      fs.pathExistsSync(path.join(tmpDir, '.clawmorph', 'snapshots')),
+      'Expected snapshot directory after apply.',
+    );
+    assert.ok(fs.pathExistsSync(path.join(tmpDir, 'SOUL.md')), 'Expected SOUL.md to be created.');
+    assert.ok(fs.pathExistsSync(path.join(tmpDir, 'TOOLS.md')), 'Expected TOOLS.md to be created.');
 
-  assert.match(applyResult.stdout, /Applied researcher/);
-  assert.ok(
-    fs.pathExistsSync(path.join(tmpDir, '.clawmorph', 'snapshots')),
-    'Expected snapshot directory after apply.',
-  );
-  assert.ok(fs.pathExistsSync(path.join(tmpDir, 'SOUL.md')), 'Expected SOUL.md to be created.');
-  assert.ok(fs.pathExistsSync(path.join(tmpDir, 'TOOLS.md')), 'Expected TOOLS.md to be created.');
-
-  const rollbackResult = run(['rollback', '--path', tmpDir]);
-  assert.match(rollbackResult.stdout, /Rollback complete/);
-  assert.equal(
-    createWorkspaceFingerprint(tmpDir),
-    beforeFingerprint,
-    'Workspace contents should match the original fixture after rollback.',
-  );
-  assert.equal(
-    fs.pathExistsSync(path.join(tmpDir, '.clawmorph')),
-    false,
-    'Expected .clawmorph to be cleaned up after rollback.',
-  );
-
-  console.log(`E2E verification passed for ${tmpDir}`);
-} finally {
-  fs.removeSync(tmpDir);
+    const rollbackResult = run(['rollback', '--path', tmpDir]);
+    assert.match(rollbackResult.stdout, /Rollback complete/);
+    assert.equal(
+      createWorkspaceFingerprint(tmpDir),
+      beforeFingerprint,
+      'Workspace contents should match the original fixture after rollback.',
+    );
+    assert.equal(
+      fs.pathExistsSync(path.join(tmpDir, '.clawmorph')),
+      false,
+      'Expected .clawmorph to be cleaned up after rollback.',
+    );
+  });
 }
+
+function verifyIdempotentApply() {
+  withFixtureCopy(demoFixture, (tmpDir) => {
+    const firstApply = run(['apply', '--path', tmpDir, '--role', 'researcher']);
+    const fingerprintAfterFirstApply = createWorkspaceFingerprint(tmpDir);
+    const secondApply = run(['apply', '--path', tmpDir, '--role', 'researcher']);
+
+    assert.match(firstApply.stdout, /Changed 4 file\(s\)/);
+    assert.match(secondApply.stdout, /No changes were needed\./);
+    assert.equal(
+      createWorkspaceFingerprint(tmpDir),
+      fingerprintAfterFirstApply,
+      'Second apply should not mutate an already-morphed workspace.',
+    );
+  });
+}
+
+function verifyMultiRoleRollbackChain() {
+  withFixtureCopy(demoFixture, (tmpDir) => {
+    const originalFingerprint = createWorkspaceFingerprint(tmpDir);
+
+    run(['apply', '--path', tmpDir, '--role', 'researcher']);
+    const researcherFingerprint = createWorkspaceFingerprint(tmpDir);
+
+    run(['apply', '--path', tmpDir, '--role', 'founder']);
+    const founderFingerprint = createWorkspaceFingerprint(tmpDir);
+    assert.notEqual(founderFingerprint, researcherFingerprint, 'Founder apply should change the workspace.');
+
+    run(['rollback', '--path', tmpDir]);
+    assert.equal(
+      createWorkspaceFingerprint(tmpDir),
+      researcherFingerprint,
+      'First rollback should restore the previous role state.',
+    );
+
+    run(['rollback', '--path', tmpDir]);
+    assert.equal(
+      createWorkspaceFingerprint(tmpDir),
+      originalFingerprint,
+      'Second rollback should restore the original workspace state.',
+    );
+  });
+}
+
+function verifyManagedSectionsUpdate() {
+  withFixtureCopy(managedFixture, (tmpDir) => {
+    const applyResult = run(['apply', '--path', tmpDir, '--role', 'founder']);
+    const identity = fs.readFileSync(path.join(tmpDir, 'IDENTITY.md'), 'utf8');
+    const soul = fs.readFileSync(path.join(tmpDir, 'SOUL.md'), 'utf8');
+    const tools = fs.readFileSync(path.join(tmpDir, 'TOOLS.md'), 'utf8');
+    const memory = fs.readFileSync(path.join(tmpDir, 'MEMORY.md'), 'utf8');
+
+    assert.match(applyResult.stdout, /Applied founder/);
+    assert.match(identity, /Name: founder/);
+    assert.match(soul, /You are the Founder role pack/);
+    assert.match(tools, /strategy-memo/);
+    assert.match(memory, /Tie decisions to market, revenue, or adoption signals\./);
+    assert.match(memory, /Flag assumptions that need rapid validation\./);
+    assert.equal(
+      (identity.match(/clawmorph:identity:start/g) ?? []).length,
+      1,
+      'Identity marker should be updated in place without duplication.',
+    );
+    assert.match(identity, /Persistent identity notes stay above the managed section\./);
+    assert.match(soul, /Human-authored soul preface\./);
+    assert.match(tools, /Manual tools note before generated skills\./);
+  });
+}
+
+verifyBasicApplyRollback();
+verifyIdempotentApply();
+verifyMultiRoleRollbackChain();
+verifyManagedSectionsUpdate();
+console.log('All E2E verification scenarios passed.');

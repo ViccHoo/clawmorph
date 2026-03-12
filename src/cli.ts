@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import fs from "node:fs";
+import path from "node:path";
 import { Command } from "commander";
 import pc from "picocolors";
 
@@ -8,13 +10,22 @@ import { createListCommand } from "./commands/list";
 import { createPreviewCommand } from "./commands/preview";
 import { createRollbackCommand } from "./commands/rollback";
 
+function getPackageVersion(): string {
+  const packageJsonPath = path.resolve(__dirname, "..", "package.json");
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")) as {
+    version?: string;
+  };
+
+  return packageJson.version ?? "0.0.0";
+}
+
 async function main(): Promise<void> {
   const program = new Command();
 
   program
     .name("clawmorph")
     .description("CLI for browsing and applying OpenClaw role packs")
-    .version("0.1.0")
+    .version(getPackageVersion())
     .showHelpAfterError();
 
   program.addCommand(createListCommand());
