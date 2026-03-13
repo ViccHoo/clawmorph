@@ -29,15 +29,14 @@ That makes it useful for real agent iteration, not just prompt swapping.
 ## Quick demo
 
 ```bash
-npm install
-npm run build
-npm run list
-npm run preview -- --path ./test-fixtures/demo-agent --role researcher
-npm run demo:apply
-npm run demo
+npx clawmorph list
+npx clawmorph new demo-founder --role founder --root /tmp/clawmorph-agents
+npx clawmorph preview --path /tmp/clawmorph-agents/demo-founder --role researcher
+npx clawmorph snapshots --path /tmp/clawmorph-agents/demo-founder
+npx clawmorph rollback --path /tmp/clawmorph-agents/demo-founder
 ```
 
-`npm run demo:apply` uses a temporary copy of the demo fixture so you can test apply + rollback safely without mutating the checked-in files.
+For the shortest first run, use `npx clawmorph ...`. If you want the command available globally, install it with `npm install -g clawmorph`.
 
 ---
 
@@ -68,6 +67,33 @@ ClawMorph can apply a role pack that:
 
 ---
 
+## Install
+
+### Run instantly with npx
+
+```bash
+npx clawmorph list
+```
+
+### Install globally
+
+```bash
+npm install -g clawmorph
+clawmorph list
+```
+
+### Develop from source
+
+```bash
+git clone https://github.com/ViccHoo/clawmorph.git
+cd clawmorph
+npm install
+npm run build
+npm run list
+```
+
+---
+
 ## Built-in role packs
 
 - `researcher` — evidence gathering, source comparison, synthesis
@@ -83,8 +109,8 @@ ClawMorph can apply a role pack that:
 ### Create a new agent workspace
 
 ```bash
-npm run new -- my-agent --role researcher
-npm run new -- founder-bot --role founder --root /tmp/clawmorph-agents
+clawmorph new my-agent --role researcher
+clawmorph new founder-bot --role founder --root /tmp/clawmorph-agents
 ```
 
 This creates a new OpenClaw-compatible workspace and immediately applies the selected role pack.
@@ -92,43 +118,34 @@ This creates a new OpenClaw-compatible workspace and immediately applies the sel
 ### List available role packs
 
 ```bash
-npm run list
-npm run snapshots -- --path /tmp/leo-demo
+clawmorph list
+clawmorph snapshots --path /tmp/leo-demo
 ```
 
 ### Preview changes for a role pack
 
 ```bash
-npm run preview -- --path ./test-fixtures/demo-agent --role researcher
-npm run preview -- --path ./test-fixtures/demo-agent --role researcher --json
+clawmorph preview --path ./test-fixtures/demo-agent --role researcher
+clawmorph preview --path ./test-fixtures/demo-agent --role researcher --json
 ```
 
 Or resolve a named agent conservatively:
 
 ```bash
-npm run preview -- --agent leo --role researcher
+clawmorph preview --agent leo --role researcher
 ```
-
-### Apply + rollback safely on a temporary copy
-
-```bash
-npm run demo:apply
-```
-
-This runs `apply` and `rollback` against a temporary copy of `test-fixtures/demo-agent`.
 
 ### Apply a role pack directly to a workspace copy
 
 ```bash
-npm run apply -- --path /tmp/leo-demo --role researcher
+clawmorph apply --path /tmp/leo-demo --role researcher
 ```
 
 ### Roll back the latest apply
 
 ```bash
-npm run rollback -- --path /tmp/leo-demo
-npm run rollback -- --path /tmp/leo-demo --snapshot <snapshot-id>
-npm run demo
+clawmorph rollback --path /tmp/leo-demo
+clawmorph rollback --path /tmp/leo-demo --snapshot <snapshot-id>
 ```
 
 ---
@@ -160,11 +177,11 @@ ClawMorph intentionally does **not** mutate `USER.md` in this version.
 For integration with scripts or future UI layers, core commands support JSON output:
 
 ```bash
-npm run list -- --json
-npm run preview -- --path ./test-fixtures/demo-agent --role researcher --json
-npm run apply -- --path /tmp/leo-demo --role researcher --json
-npm run rollback -- --path /tmp/leo-demo --json
-npm run snapshots -- --path /tmp/leo-demo --json
+clawmorph list --json
+clawmorph preview --path ./test-fixtures/demo-agent --role researcher --json
+clawmorph apply --path /tmp/leo-demo --role researcher --json
+clawmorph rollback --path /tmp/leo-demo --json
+clawmorph snapshots --path /tmp/leo-demo --json
 ```
 
 ---
@@ -177,9 +194,9 @@ Example:
 
 ```bash
 cp -R ~/.openclaw/workspace/agents/leo /tmp/leo-demo
-npm run preview -- --path /tmp/leo-demo --role researcher
-npm run apply -- --path /tmp/leo-demo --role researcher
-npm run rollback -- --path /tmp/leo-demo
+clawmorph preview --path /tmp/leo-demo --role researcher
+clawmorph apply --path /tmp/leo-demo --role researcher
+clawmorph rollback --path /tmp/leo-demo
 ```
 
 This keeps your real agent untouched while still demonstrating the workflow.
@@ -220,7 +237,6 @@ ClawMorph's core CLI is Node.js-based and is intended to work across macOS, Ubun
 - improved real-agent path resolution
 - cleaner generated sections and formatting
 - import/export role packs
-- publishable npm package workflow
 - optional OpenClaw skill wrapper around the CLI
 
 ---
@@ -228,10 +244,12 @@ ClawMorph's core CLI is Node.js-based and is intended to work across macOS, Ubun
 ## Development
 
 ```bash
+git clone https://github.com/ViccHoo/clawmorph.git
+cd clawmorph
 npm install
 npm run build
-npm run list
-npm run preview -- --path ./test-fixtures/demo-agent --role researcher
+npm test
+npm run demo
 ```
 
 ---
