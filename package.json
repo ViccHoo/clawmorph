@@ -1,6 +1,6 @@
 {
   "name": "clawmorph",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": false,
   "description": "Transform OpenClaw agents into specialized professional roles with preview, apply, and rollback.",
   "main": "dist/cli.js",
