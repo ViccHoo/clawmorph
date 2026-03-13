@@ -1,5 +1,11 @@
 # ClawMorph Demo Transcript
 
+## Create a new agent workspace
+
+```bash
+npm run new -- demo-founder --role founder --root /tmp/clawmorph-agents
+```
+
 ## List role packs
 
 ```bash

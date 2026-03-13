@@ -80,6 +80,15 @@ ClawMorph can apply a role pack that:
 
 ## Commands
 
+### Create a new agent workspace
+
+```bash
+npm run new -- my-agent --role researcher
+npm run new -- founder-bot --role founder --root /tmp/clawmorph-agents
+```
+
+This creates a new OpenClaw-compatible workspace and immediately applies the selected role pack.
+
 ### List available role packs
 
 ```bash

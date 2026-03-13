@@ -10,11 +10,15 @@ const projectRoot = process.cwd();
 const demoFixture = path.join(projectRoot, 'test-fixtures', 'demo-agent');
 const managedFixture = path.join(projectRoot, 'test-fixtures', 'managed-agent');
 
-function run(args) {
-  const result = spawnSync('node', ['dist/cli.js', ...args], {
+function runRaw(args) {
+  return spawnSync('node', ['dist/cli.js', ...args], {
     cwd: projectRoot,
     encoding: 'utf8',
   });
+}
+
+function run(args) {
+  const result = runRaw(args);
 
   if (result.status !== 0) {
     process.stderr.write(result.stdout ?? '');
@@ -30,6 +34,16 @@ function withFixtureCopy(fixturePath, callback) {
 
   try {
     fs.copySync(fixturePath, tmpDir, { overwrite: true });
+    callback(tmpDir);
+  } finally {
+    fs.removeSync(tmpDir);
+  }
+}
+
+function withTempDir(callback) {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'clawmorph-e2e-root-'));
+
+  try {
     callback(tmpDir);
   } finally {
     fs.removeSync(tmpDir);
@@ -222,10 +236,41 @@ function verifySnapshotsCommandAndSpecificRollback() {
   });
 }
 
+function verifyNewWorkspaceCommand() {
+  withTempDir((rootDir) => {
+    const result = JSON.parse(
+      run(['new', 'alpha-agent', '--role', 'researcher', '--root', rootDir, '--json']).stdout,
+    );
+    const workspacePath = path.join(rootDir, 'alpha-agent');
+
+    assert.equal(result.target.rootPath, workspacePath);
+    assert.equal(fs.pathExistsSync(path.join(workspacePath, 'IDENTITY.md')), true);
+    assert.equal(fs.pathExistsSync(path.join(workspacePath, 'SOUL.md')), true);
+    assert.equal(fs.pathExistsSync(path.join(workspacePath, 'TOOLS.md')), true);
+    assert.equal(fs.pathExistsSync(path.join(workspacePath, 'MEMORY.md')), true);
+    assert.match(
+      fs.readFileSync(path.join(workspacePath, 'IDENTITY.md'), 'utf8'),
+      /Name: researcher/,
+    );
+    assert.ok(result.snapshot?.id, 'Expected snapshot for a newly created workspace.');
+
+    const duplicateAttempt = runRaw(['new', 'alpha-agent', '--role', 'founder', '--root', rootDir]);
+
+    assert.notEqual(duplicateAttempt.status, 0, 'Creating the same workspace twice should fail.');
+    assert.match(
+      `${duplicateAttempt.stdout}
+${duplicateAttempt.stderr}`,
+      /Workspace directory already exists and is not empty/,
+      'Creating the same workspace twice should fail safely.',
+    );
+  });
+}
+
 verifyBasicApplyRollback();
 verifyIdempotentApply();
 verifyMultiRoleRollbackChain();
 verifyManagedSectionsUpdate();
 verifyJsonOutputs();
 verifySnapshotsCommandAndSpecificRollback();
+verifyNewWorkspaceCommand();
 console.log('All E2E verification scenarios passed.');

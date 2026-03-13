@@ -22,7 +22,8 @@
     "demo:apply": "node scripts/demo-apply.mjs",
     "demo": "node scripts/demo-release.mjs",
     "verify:e2e": "node scripts/verify-e2e.mjs",
-    "snapshots": "tsx src/cli.ts snapshots"
+    "snapshots": "tsx src/cli.ts snapshots",
+    "new": "tsx src/cli.ts new"
   },
   "engines": {
     "node": ">=18"

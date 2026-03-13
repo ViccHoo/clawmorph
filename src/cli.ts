@@ -6,6 +6,7 @@ import { Command } from "commander";
 import pc from "picocolors";
 
 import { createApplyCommand } from "./commands/apply";
+import { createNewCommand } from "./commands/new";
 import { createListCommand } from "./commands/list";
 import { createPreviewCommand } from "./commands/preview";
 import { createRollbackCommand } from "./commands/rollback";
@@ -30,6 +31,7 @@ async function main(): Promise<void> {
     .showHelpAfterError();
 
   program.addCommand(createListCommand());
+  program.addCommand(createNewCommand());
   program.addCommand(createPreviewCommand());
   program.addCommand(createApplyCommand());
   program.addCommand(createRollbackCommand());
